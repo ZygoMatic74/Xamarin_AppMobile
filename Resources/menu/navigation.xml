@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+  <item
+      android:id="@+id/ServiceF"
+      android:title="@string/tab1_title"
+      app:showAsAction="always|withText" />
+  <item
+    android:id="@+id/Formulaire"
+    android:title="@string/tab1_title"
+    app:showAsAction="always|withText" />
+
+  <item
+    android:id="@+id/Resultat"
+    android:title="@string/tab1_title"
+    app:showAsAction="always|withText" />
+
+  <item
+     android:id="@+id/Dev"
+     android:title="@string/tab1_title"
+     app:showAsAction="always|withText" />
+  
+</menu>
