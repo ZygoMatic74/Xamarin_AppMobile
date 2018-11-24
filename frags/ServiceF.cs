@@ -9,27 +9,35 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
+using Android.Preferences;
 
 namespace AppXamarin.frags
 {
     class ServiceF : Fragment
     {
         myJsonInterface recupJson;
+        Context myCtxt;
+        LinearLayout myLinear;
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
             View rootView = inflater.Inflate(Resource.Layout.layout_Service, container, false);
 
-            Context myCtxt = rootView.Context;
+            myCtxt = rootView.Context;
             Android.Content.Res.AssetManager assets = this.Context.Assets;
 
             recupJson = new myJsonInterface("service.json", assets);
 
-            LinearLayout myLinear = rootView.FindViewById<LinearLayout>(Resource.Id.listServiceJson);
+            myLinear = rootView.FindViewById<LinearLayout>(Resource.Id.listServiceJson);
+
+            ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(myCtxt);
+            ISharedPreferencesEditor editor = prefs.Edit();
+            editor.Clear();
+            editor.Apply();
+
             recupJson.generateJsonServiceList(myLinear, myCtxt);
 
             return rootView;
-
         }
     }
 }
