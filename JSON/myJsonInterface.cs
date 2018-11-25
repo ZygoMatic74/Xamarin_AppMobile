@@ -18,7 +18,7 @@ namespace AppXamarin
 {
   class myJsonInterface
   {
-        myServicesListe myServices = new myServicesListe();
+    myServicesListe myServices = new myServicesListe();
 
     public myJsonInterface(string nameJsonFile, AssetManager assets)
     {
@@ -38,63 +38,72 @@ namespace AppXamarin
     public void generateJsonForm(LinearLayout myView, Context ctxt)
         {
             ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(ctxt);
-            String myString = prefs.GetString("currentService", "null");
+            String myServiceString = prefs.GetString("currentService", "null");
 
-            if(myString == myServices.services[0].title) {
-                // Définition du composant Text. 
+            myView.RemoveAllViewsInLayout();
+
+            if(myServiceString != "null")
+            {
+                if (myServiceString == myServices.services[0].title)
+                {
+                    // Définition du composant Text. 
+                    TextView myTextView = new TextView(ctxt);
+                    myTextView.Text = myServices.services[0].title;
+                    myView.AddView(myTextView);
+                }
+
+                if (myServiceString == myServices.services[1].title)
+                {
+                    TextView myTextView2 = new TextView(ctxt);
+                    myTextView2.Text = myServices.services[1].title;
+                    myView.AddView(myTextView2);
+                }
+
+                RadioGroup r = new RadioGroup(ctxt);
+                String test = "Test";
+
+                RadioButton r1 = new RadioButton(ctxt);
+                r1.Text = test;
+
+                r.AddView(r1);
+                myView.AddView(r);
+            }
+            else
+            {
                 TextView myTextView = new TextView(ctxt);
-                myTextView.Text = myServices.services[0].title;
+                myTextView.Text = "Aucun service sélectionné !";
                 myView.AddView(myTextView);
             }
 
-            if (myString == myServices.services[1].title)
-            {
-                TextView myTextView2 = new TextView(ctxt);
-                myTextView2.Text = myServices.services[1].title;
-                myView.AddView(myTextView2);
-            }
-
-            RadioGroup r = new RadioGroup(ctxt);
-            String test = "Test";
-
-            RadioButton r1 = new RadioButton(ctxt);
-            r1.Text = test;
-
-            r.AddView(r1);
-            myView.AddView(r);
         }
 
     public void generateJsonServiceList(LinearLayout myList, Context ctxt)
         {
-            ImageButton myImage = new ImageButton(ctxt);
-            var uri =GetImageBitmapFromUrl("https://img3.telestar.fr/var/telestar/storage/images/3/0/5/6/3056045/netflix-annonce-des-projets-france_width1024.png");
-            myImage.SetImageBitmap(uri);
-            myImage.SetScaleType(ImageView.ScaleType.FitCenter);
-            myImage.Click += (sender, e) =>
+            for(int i = 0; i < myServices.services.Length; i++)
             {
-                ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(ctxt);
-                ISharedPreferencesEditor editor = prefs.Edit();
-                editor.PutString("currentService", myServices.services[0].title);
-                editor.Apply();
-            };
+                string service = myServices.services[i].title;
 
-            ImageButton myImage2 = new ImageButton(ctxt);
-            var uri2 = GetImageBitmapFromUrl("https://images-eu.ssl-images-amazon.com/images/I/51rttY7a%2B9L.png");
-            myImage2.SetImageBitmap(uri2);
-            myImage2.SetScaleType(ImageView.ScaleType.FitCenter);
-            myImage2.Click += (sender, e) =>
-            {
-                ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(ctxt);
-                ISharedPreferencesEditor editor = prefs.Edit();
-                editor.PutString("currentService", myServices.services[1].title);
-                editor.Apply();
-            };
+                ImageButton myImage = new ImageButton(ctxt);
+                var uri = GetImageBitmapFromUrl(getImageForService(i));
+                myImage.SetImageBitmap(uri);
+                myImage.SetScaleType(ImageView.ScaleType.FitCenter);
 
-            myList.AddView(myImage);
-            myList.AddView(myImage2);
+                myImage.Click += (sender, e) =>
+                {
+                    ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(ctxt);
+                    ISharedPreferencesEditor editor = prefs.Edit();
+                    editor.PutString("currentService", service);
+                    editor.Apply();
+                };
 
+                myList.AddView(myImage);
+            }
         }
 
+
+
+        // ***** Fonction permettant de récupérer une image en focntion de son URL et la converti en Bitmap
+        // ***** Trouvée sur un forum
         private Bitmap GetImageBitmapFromUrl(string url)
         {
             Bitmap imageBitmap = null;
@@ -109,6 +118,18 @@ namespace AppXamarin
                 }
 
             return imageBitmap;
+        }
+
+        // ***** Fonction permettant de renvoyer l'URL de l'image pour le service d'indice l
+        private String getImageForService(int l)
+        {
+            myService currentService = myServices.services[l];
+
+            for (int i = 0; i<currentService.elements.Length;i++)
+            {
+                if(currentService.elements[i].type == "image") { return currentService.elements[i].value[0]; }
+            }
+            return "";
         }
     }
 }
