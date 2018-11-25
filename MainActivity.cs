@@ -10,6 +10,8 @@ using Fragment = Android.Support.V4.App.Fragment;
 using Android.Support.Design.Widget;
 using System;
 using Android.Support.Design.Internal;
+using Android.Content;
+using Android.Preferences;
 
 namespace AppXamarin
 {
@@ -21,7 +23,6 @@ namespace AppXamarin
         private TabPagerAdapter adapter;
         private Android.Support.V4.App.FragmentManager fm;
         private BottomNavigationView _navigationView;
-        private JavaList<Fragment> pages = new JavaList<Fragment>();
         private Formulaire myForm;
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -29,6 +30,12 @@ namespace AppXamarin
             base.OnCreate(savedInstanceState);
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.activity_main);
+
+            // ***** Reset des shared preferences
+            ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(this);
+            ISharedPreferencesEditor editor = prefs.Edit();
+            editor.Clear();
+            editor.Apply();
 
             //Fragment manager
             fm = this.SupportFragmentManager;
@@ -40,14 +47,13 @@ namespace AppXamarin
 
             //Adapter
             adapter = new TabPagerAdapter(fm, getPages());
-            //set Adapter
 
+            //set Adapter
             _viewPager.Adapter = adapter;
 
 
             _navigationView = FindViewById<BottomNavigationView>(Resource.Id.bottom_navigation);
             RemoveShiftMode(_navigationView);
-            //******La fonction cassé
             _navigationView.NavigationItemSelected += NavigationView_NavigationItemSelected;
 
         }
@@ -55,9 +61,15 @@ namespace AppXamarin
         //*** Ajout des fragments dans la liste de fragment
         private JavaList<Fragment> getPages()
         {
+            JavaList<Fragment> pages = new JavaList<Fragment>();
+
             pages.Add(new ServiceF());
+
+            // ***** Sauvegarde de l'instance myForm dans une variable globale afin de pouvoir
+            // ***** appeler facilement la fonction reload lors de la selection du fragment
             myForm = new Formulaire();
             pages.Add(myForm);
+
             pages.Add(new Resultat());
             pages.Add(new Dev());
 
