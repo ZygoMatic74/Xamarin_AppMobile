@@ -30,11 +30,7 @@ namespace AppXamarin.frags
 
             myLinear = rootView.FindViewById<LinearLayout>(Resource.Id.listServiceJson);
 
-            ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(myCtxt);
-            ISharedPreferencesEditor editor = prefs.Edit();
-            editor.Clear();
-            editor.Apply();
-
+            // ***** Récupération de la liste des services présent dans le Json
             recupJson.generateJsonServiceList(myLinear, myCtxt);
 
             return rootView;
