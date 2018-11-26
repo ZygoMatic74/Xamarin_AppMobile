@@ -3,21 +3,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
       android:id="@+id/ServiceF"
-      android:title="@string/tab1_title"
-      app:showAsAction="always|withText" />
+      android:title="@string/service_title"
+      android:icon="@drawable/iconeservice"
+      app:showAsAction="always|withText"/>
   <item
     android:id="@+id/Formulaire"
-    android:title="@string/tab1_title"
+    android:title="@string/formulaire_title"
+    android:icon="@drawable/iconeformulaire"
     app:showAsAction="always|withText" />
 
   <item
     android:id="@+id/Resultat"
-    android:title="@string/tab1_title"
+    android:title="@string/resultat_title"
+    android:icon="@drawable/iconeresultat"
     app:showAsAction="always|withText" />
 
   <item
      android:id="@+id/Dev"
-     android:title="@string/tab1_title"
+     android:title="@string/dev_title"
+     android:icon="@drawable/iconedev"
      app:showAsAction="always|withText" />
   
 </menu>
