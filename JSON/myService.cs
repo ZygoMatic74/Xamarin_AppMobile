@@ -15,6 +15,6 @@ namespace AppXamarin
   class myService
   {
     public string title { get; set; }
-    public myElement[] elements { get; set; }
+    public Object[] elements { get; set; }
   }
 }

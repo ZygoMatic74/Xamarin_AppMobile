@@ -12,7 +12,7 @@ using Android.Widget;
 
 namespace AppXamarin
 {
-  class myElement
+  class Object
   {
     public string section { get; set; }
     public string type { get; set; }

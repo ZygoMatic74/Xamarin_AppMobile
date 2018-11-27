@@ -13,6 +13,10 @@ using Android.Views;
 using Android.Graphics;
 using System.Net;
 using Android.Preferences;
+using AlertDialog = Android.App.AlertDialog;
+using Java.Util;
+using System.Collections.Generic;
+using AppXamarin.JSON;
 
 namespace AppXamarin
 {
@@ -20,6 +24,8 @@ namespace AppXamarin
   {
         myServicesListe myServices = new myServicesListe();
         String serviceSelected = "null";
+        List<savedElement> myElements = new List<savedElement>();
+        savedSubscription mySubscription = new savedSubscription();
 
         public myJsonInterface(string nameJsonFile, AssetManager assets)
         {
@@ -70,34 +76,152 @@ namespace AppXamarin
             myView.RemoveAllViewsInLayout();
 
             int indiceService = getIndiceForService(myService);
-            myElement[] tabElements = myServices.services[indiceService].elements;
+            Object[] tabElements = myServices.services[indiceService].elements;
+
+            mySubscription.Reset();
+            int elementToSave = 0;
+            myElements.Clear();
 
             for(int i = 0; i < tabElements.Length; i++)
             {
                 switch (tabElements[i].type)
                 {
                     case "image" :
-                        addImageToView(tabElements[i].value[0], myView, ctxt);
+                        addImageToView(tabElements[i], myView, ctxt);
                         break;
+
                     case "edit":
-                        addEditTextToView(tabElements[i].value[0], myView, ctxt);
+                        addEditTextToView(tabElements[i], myView, ctxt);
+                        elementToSave++;
                         break;
+
                     case "radioGroup":
-                        addRadioGroupToView(tabElements[i].value, myView, ctxt);
+                        addRadioGroupToView(tabElements[i], myView, ctxt);
+                        elementToSave++;
                         break;
+
                     case "label":
-                        addLabelToView(tabElements[i].value[0], myView, ctxt);
+                        addLabelToView(tabElements[i], myView, ctxt);
                         break;
+
                     case "switch":
-                        addSwitchToView(tabElements[i].value[0], myView, ctxt);
+                        addSwitchToView(tabElements[i], myView, ctxt);
+                        elementToSave++;
                         break;
+
                     case "button":
-                        addButtonToView(tabElements[i].value[0], myView, ctxt);
+                        addCheckBoxToView(tabElements[i], myView, ctxt);
+                        elementToSave++;
                         break;
+
                     default:
                         break;
                 }
             }
+
+            mySubscription.AdaptSize(elementToSave);
+
+            Button validateButton = new Button(ctxt);
+            validateButton.Text = "Valider";
+            validateButton.Click += (sender, e) => {
+                string errorMessage = Checker(myElements, ctxt);
+                if (errorMessage != "OK")
+                {
+                    mySubscription.Reset();
+                    AlertDialog.Builder alert = new AlertDialog.Builder(ctxt);
+                    alert.SetNegativeButton("Fermer", (senderAlert, args) => { });
+                    alert.SetMessage("Vous avez oublié des informations ! \n" + errorMessage);
+                    Dialog dialog = alert.Create();
+                    dialog.Show();
+                }
+                else
+                {
+                    mySubscription.Reset();
+                }
+            };
+
+            myView.AddView(validateButton);
+
+        }
+
+        private String Checker(List<savedElement> mySavedElements, Context ctxt)
+        {
+            string currentSection = "";
+            string value = "";
+            string result = "";
+
+            foreach(savedElement item in mySavedElements)
+            {
+                switch (item.myElement.type)
+                {
+                    case "edit":
+                        TextView tempTextView = item.myView.JavaCast<TextView>();
+
+                        if (tempTextView.Text != "" || !item.myElement.mandatory)
+                        {
+                            mySubscription.Add(new savedInfo(tempTextView.Hint, tempTextView.Text));
+                        }
+                        else
+                        {
+                            result = result + " " + tempTextView.Hint;
+                        }
+                        break;
+
+                    case "radioGroup":
+                        RadioGroup tempRadioGroup = item.myView.JavaCast<RadioGroup>();
+                        RadioButton isChecked = tempRadioGroup.GetChildAt(tempRadioGroup.CheckedRadioButtonId).JavaCast<RadioButton>();
+                        if(!(isChecked == null))
+                        {
+                            mySubscription.Add(new savedInfo(currentSection, isChecked.Text));
+                        }
+                        else
+                        {
+                            result = result + " " + currentSection + " " + tempRadioGroup.CheckedRadioButtonId;
+                        }
+                        break;
+
+                    case "label":
+                        TextView tempLabel = item.myView.JavaCast<TextView>();
+                        currentSection = tempLabel.Text;
+                        break;
+
+                    case "switch":
+                        Switch tempSwitch = item.myView.JavaCast<Switch>();
+
+                        if (tempSwitch.Checked)
+                        {
+                            value = "true";
+                        }
+                        else
+                        {
+                            value = "false";
+                        };
+
+                        mySubscription.Add(new savedInfo(currentSection, value));
+                        break;
+
+                    case "button":
+                        CheckBox tempCheckBox = item.myView.JavaCast<CheckBox>();
+                        currentSection = tempCheckBox.Text;
+
+                        if (tempCheckBox.Checked)
+                        {
+                            value = "true";
+                        }
+                        else
+                        {
+                            value = "false";
+                        };
+
+                        mySubscription.Add(new savedInfo(currentSection + item.myElement.section, value ));
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            if (result == "") { return "OK"; } else { return result; }
         }
 
         private int getIndiceForService(String myService)
@@ -109,52 +233,56 @@ namespace AppXamarin
             return -1;
         }
 
-        private void addImageToView(String myUrl, LinearLayout myView, Context ctxt)
+        private void addImageToView(Object myElement, LinearLayout myView, Context ctxt)
         {
             ImageView myImage = new ImageView(ctxt);
-            var uri = GetImageBitmapFromUrl(myUrl);
+            var uri = GetImageBitmapFromUrl(myElement.value[0]);
             myImage.SetImageBitmap(uri);
             myImage.SetScaleType(ImageView.ScaleType.FitCenter);
             myView.AddView(myImage);
         }
 
-        private void addEditTextToView(String myHint, LinearLayout myView, Context ctxt)
+        private void addEditTextToView(Object myElement, LinearLayout myView, Context ctxt)
         {
             EditText myEdit = new EditText(ctxt);
-            myEdit.Hint = myHint;
+            myEdit.Hint = myElement.value[0];
+
+            myElements.Add(new savedElement(myEdit,myElement));
             myView.AddView(myEdit);
         }
 
-        private void addRadioGroupToView(String[] myValues, LinearLayout myView, Context ctxt)
+        private void addRadioGroupToView(Object myElement, LinearLayout myView, Context ctxt)
         {
             RadioGroup myRadioGroup = new RadioGroup(ctxt);
 
-            for(int i = 0; i < myValues.Length; i++)
+
+            for(int i = 0; i < myElement.value.Length; i++)
             {
                 RadioButton myRadioButton = new RadioButton(ctxt);
-
-                String myValue = myValues[i];
+                String myValue = myElement.value[i];
                 myRadioButton.Text = myValue;
-
+                myRadioButton.Id = i;
                 myRadioGroup.AddView(myRadioButton);
             }
 
+            myElements.Add(new savedElement(myRadioGroup,myElement));
             myView.AddView(myRadioGroup);
         }
 
-        private void addLabelToView(String myLabel, LinearLayout myView, Context ctxt)
+        private void addLabelToView(Object myElement, LinearLayout myView, Context ctxt)
         {
             TextView myText = new TextView(ctxt);
-            myText.Text = myLabel;
+            myText.Text = myElement.value[0];
 
+            myElements.Add(new savedElement(myText,myElement));
             myView.AddView(myText);
         }
 
-        private void addSwitchToView(String myBool, LinearLayout myView, Context ctxt)
+        private void addSwitchToView(Object myElement, LinearLayout myView, Context ctxt)
         {
             Switch mySwitch = new Switch(ctxt);
 
-            if (myBool == "true")
+            if (myElement.value[0] == "true")
             {
                 mySwitch.Checked = true;
             }
@@ -163,15 +291,18 @@ namespace AppXamarin
                 mySwitch.Checked = false;
             }
 
+            myElements.Add(new savedElement(mySwitch,myElement));
             myView.AddView(mySwitch);
         }
 
-        private void addButtonToView(String myText, LinearLayout myView, Context ctxt)
+        private void addCheckBoxToView(Object myElement, LinearLayout myView, Context ctxt)
         {
-            Button myButton = new Button(ctxt);
-            myButton.Text = myText;
+            CheckBox myCheckBox = new CheckBox(ctxt);
+            myCheckBox.Text = myElement.value[0];
+            myCheckBox.Checked = true;
 
-            myView.AddView(myButton);
+            myElements.Add(new savedElement(myCheckBox, myElement));
+            myView.AddView(myCheckBox);
         }
 
         // ***********************************************************************************************

@@ -23,5 +23,5 @@
      android:title="@string/dev_title"
      android:icon="@drawable/iconedev"
      app:showAsAction="always|withText" />
-  
+
 </menu>
